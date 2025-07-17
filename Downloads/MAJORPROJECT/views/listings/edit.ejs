@@ -23,7 +23,9 @@
                     <label for="image" class="form-label">
                         Image
                     </label>
-                    <input name="listing[image]" value="<%= listing.image %>" type="text" class="form-control">
+                    <input name="listing[image][url]" value="<%= listing.image.url %>" type="text" class="form-control">
+                    <input name="listing[image][filename]" value="<%= listing.image.filename %>" type="hidden">
+
                 </div>
                 <div class="row">
                     <div class="mb-3 col-md-4">

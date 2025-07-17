@@ -5,7 +5,7 @@ let port = 8080;
 const Listing = require("./models/listing");
 const path = require("path");
 const methodOverride = require("method-override");
-const ejsMate = require ("ejs-mate");//help to create template
+const ejsMate = require("ejs-mate");//help to create template
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -24,7 +24,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
-app.use(express.static(path.join(__dirname , "/public")));
+app.use(express.static(path.join(__dirname, "/public")));
 
 app.get("/", (req, res) => {
     res.send("Hi i am root")
@@ -36,7 +36,7 @@ app.get("/listings", async (req, res) => {
 });
 
 //new route
-app.get("/listings/new" , (req,res) => {
+app.get("/listings/new", (req, res) => {
     res.render("listings/new.ejs");
 })
 
@@ -44,33 +44,48 @@ app.get("/listings/new" , (req,res) => {
 app.get("/listings/:id", async (req, res) => {
     let { id } = req.params;
     const listing = await Listing.findById(id);
-    res.render("listings/show.ejs", {listing});
+    res.render("listings/show.ejs", { listing });
 })
 
 //create route
-app.post("/listings" , async (req,res) => {
-    let newListing = new Listing(req.body.listing);
+app.post("/listings", async (req, res) => {
+    const data = req.body.listing;
+
+    // Defensive check
+    if (!data.price) {
+        data.price = 1000; // Default fallback
+    }
+
+    const newListing = new Listing(data);
     await newListing.save();
     res.redirect("/listings");
-})
+});
+
 
 //edit route
-app.get("/listings/:id/edit" , async (req,res) => {
-    let {id} = req.params;
+app.get("/listings/:id/edit", async (req, res) => {
+    let { id } = req.params;
     const listing = await Listing.findById(id);
-    res.render("listings/edit.ejs" , {listing});
+    res.render("listings/edit.ejs", { listing });
 })
 
 //update route
-app.put("/listings/:id" , async (req,res) => {
-    let {id} = req.params;
-    await Listing.findByIdAndUpdate(id , {...req.body.listing})
+app.put("/listings/:id", async (req, res) => {
+    let { id } = req.params;
+
+    // Set default price only if price is missing or null
+    if (req.body.listing.price == null) {
+        req.body.listing.price = 1000;
+    }
+
+    await Listing.findByIdAndUpdate(id, { ...req.body.listing });
     res.redirect(`/listings/${id}`);
-})
+});
+
 
 //DELETE ROUTE
-app.delete("/listings/:id" , async (req,res) => {
-    let {id} = req.params;
+app.delete("/listings/:id", async (req, res) => {
+    let { id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
     res.redirect("/listings");
