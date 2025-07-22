@@ -4,27 +4,38 @@
         <div class="col-8 offset-2">
 
             <h3>Edit your Listing</h3>
-            <form method="POST" action="/listings/<%= listing._id %>?_method=PUT">
+            <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation">
                 <div class="mb-3">
                     <label for="title" class="form-label">
                         Title
                     </label>
-                    <input name="listing[title]" value="<%= listing.title %>" type="text" class="form-control">
+                    <input name="listing[title]" value="<%= listing.title %>" type="text" class="form-control" required>
+                     <div class="valid-feedback">
+                           Looks good
+                        </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="description" class="form-label">
                         Description
                     </label>
-                    <textarea name="listing[description]" class="form-control"><%= listing.description %></textarea>
+                    <textarea name="listing[description]" class="form-control"
+                        required><%= listing.description %></textarea>
+                    <div class="invalid-feedback">
+                        Please enter the short description
+                    </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="image" class="form-label">
                         Image
                     </label>
-                    <input name="listing[image][url]" value="<%= listing.image.url %>" type="text" class="form-control">
+                    <input name="listing[image][url]" value="<%= listing.image.url %>" type="text" class="form-control"
+                        required>
                     <input name="listing[image][filename]" value="<%= listing.image.filename %>" type="hidden">
+                    <div class="invalid-feedback">
+                        Please enter the valid link
+                    </div>
 
                 </div>
                 <div class="row">
@@ -32,14 +43,22 @@
                         <label for="price" class="form-label">
                             Price
                         </label>
-                        <input name="listing[price]" value="<%= listing.price %>" type="number" class="form-control">
+                        <input required name="listing[price]" value="<%= listing.price %>" type="number"
+                            class="form-control">
+                        <div class="invalid-feedback">
+                            Please enter the Price
+                        </div>
                     </div>
 
                     <div class="mb-3 col-md-8">
                         <label for="country" class="form-label">
                             Country
                         </label>
-                        <input name="listing[country]" class="form-control" value="<%= listing.country %>" type="text">
+                        <input required name="listing[country]" class="form-control" value="<%= listing.country %>"
+                            type="text">
+                        <div class="invalid-feedback">
+                            Country name should be valid
+                        </div>
                     </div>
                 </div>
 
@@ -47,7 +66,11 @@
                     <label for="location" class="form-label">
                         Location
                     </label>
-                    <input name="listing[location]" class="form-control" value="<%= listing.location %>" type="text">
+                    <input required name="listing[location]" class="form-control" value="<%= listing.location %>"
+                        type="text">
+                    <div class="invalid-feedback">
+                        Location should be valid
+                    </div>
 
                 </div>
                 <button class="btn btn-dark edit-btn mt-3">Edit</button>
@@ -56,3 +79,4 @@
 
         </div>
     </div>
+    <script src="/js/script.js"></script>

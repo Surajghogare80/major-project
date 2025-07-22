@@ -6,6 +6,9 @@ const Listing = require("./models/listing");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");//help to create template
+const wrapAsyc = require("./utils/wrapAsyc");
+const ExpressError = require("./utils/ExpressError");
+const {listingSchema} = require("./schema")
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -30,10 +33,10 @@ app.get("/", (req, res) => {
     res.send("Hi i am root")
 })
 //Index route
-app.get("/listings", async (req, res) => {
+app.get("/listings", wrapAsyc(async (req, res) => {
     const allListings = await Listing.find({});
     res.render("listings/index.ejs", { allListings });
-});
+}));
 
 //new route
 app.get("/listings/new", (req, res) => {
@@ -41,15 +44,20 @@ app.get("/listings/new", (req, res) => {
 })
 
 //show route
-app.get("/listings/:id", async (req, res) => {
+app.get("/listings/:id", wrapAsyc(async (req, res) => {
     let { id } = req.params;
     const listing = await Listing.findById(id);
     res.render("listings/show.ejs", { listing });
-})
+}))
 
 //create route
-app.post("/listings", async (req, res) => {
+app.post("/listings", wrapAsyc(async (req, res ,next) => {
     const data = req.body.listing;
+
+    let result = listingSchema.validate(req.body)
+    if(result.error){
+        throw new ExpressError(404 , result.error);
+    }
 
     // Defensive check
     if (!data.price) {
@@ -57,20 +65,22 @@ app.post("/listings", async (req, res) => {
     }
 
     const newListing = new Listing(data);
+    
     await newListing.save();
     res.redirect("/listings");
-});
+    })
+);
 
 
 //edit route
-app.get("/listings/:id/edit", async (req, res) => {
+app.get("/listings/:id/edit", wrapAsyc(async (req, res) => {
     let { id } = req.params;
     const listing = await Listing.findById(id);
     res.render("listings/edit.ejs", { listing });
-})
+}))
 
 //update route
-app.put("/listings/:id", async (req, res) => {
+app.put("/listings/:id", wrapAsyc(async (req, res) => {
     let { id } = req.params;
 
     // Set default price only if price is missing or null
@@ -80,16 +90,16 @@ app.put("/listings/:id", async (req, res) => {
 
     await Listing.findByIdAndUpdate(id, { ...req.body.listing });
     res.redirect(`/listings/${id}`);
-});
+}));
 
 
 //DELETE ROUTE
-app.delete("/listings/:id", async (req, res) => {
+app.delete("/listings/:id", wrapAsyc(async (req, res) => {
     let { id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
     res.redirect("/listings");
-})
+}))
 
 
 
@@ -105,6 +115,18 @@ app.delete("/listings/:id", async (req, res) => {
 //     console.log("sample was save");
 //     res.send("successful testing")
 // })
+
+//if above routes not accept the route 
+app.use((req,res,next) => {
+    next(new ExpressError (404 , "Page not Found!"))
+})
+
+//err middleware
+app.use((err,req,res,next) => {
+    let {statusCode=500 , message="Something went wrong"} = err;
+    res.status(statusCode).render("error.ejs", {err})
+    //res.status(statusCode).send(message);
+})
 
 app.listen(port, () => {
     console.log(`server is listening ${port}`)
