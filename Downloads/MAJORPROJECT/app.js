@@ -32,6 +32,16 @@ app.use(express.static(path.join(__dirname, "/public")));
 app.get("/", (req, res) => {
     res.send("Hi i am root")
 })
+
+const validateListing = (req,res,next) => {
+     let {error} = listingSchema.validate(req.body)
+    if(error){
+        throw new ExpressError(404 , error);
+    }else{
+        next();
+    }
+
+}
 //Index route
 app.get("/listings", wrapAsyc(async (req, res) => {
     const allListings = await Listing.find({});
@@ -51,13 +61,8 @@ app.get("/listings/:id", wrapAsyc(async (req, res) => {
 }))
 
 //create route
-app.post("/listings", wrapAsyc(async (req, res ,next) => {
+app.post("/listings",validateListing, wrapAsyc(async (req, res ,next) => {
     const data = req.body.listing;
-
-    let result = listingSchema.validate(req.body)
-    if(result.error){
-        throw new ExpressError(404 , result.error);
-    }
 
     // Defensive check
     if (!data.price) {
@@ -80,7 +85,7 @@ app.get("/listings/:id/edit", wrapAsyc(async (req, res) => {
 }))
 
 //update route
-app.put("/listings/:id", wrapAsyc(async (req, res) => {
+app.put("/listings/:id",validateListing, wrapAsyc(async (req, res) => {
     let { id } = req.params;
 
     // Set default price only if price is missing or null
@@ -100,8 +105,6 @@ app.delete("/listings/:id", wrapAsyc(async (req, res) => {
     console.log(deletedListing);
     res.redirect("/listings");
 }))
-
-
 
 // app.get("/testListing" , async (req,res) => {
 //     let sampleListing = new Listing ({
